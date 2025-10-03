@@ -1,59 +1,112 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
 export default function Home() {
+  const [board, setBoard] = useState([
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  ]);
+  const direction = [
+    [-1, 0],
+    [-1, 1],
+    [0, 1],
+    [1, 1],
+    [1, 0],
+    [1, -1],
+    [0, -1],
+    [-1, -1],
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBoard((prevBoard) => {
+        // 現在のボードをコピー
+        const newBoard = prevBoard.map((row) => [...row]);
+
+        // 移動可能かどうかのフラグ
+        let canMove = true;
+        // 移動するブロックの座標を保存する配列
+        const movingBlocks = [];
+
+        // 1. 移動するブロックをすべて見つける
+        for (let y = 0; y < prevBoard.length; y++) {
+          for (let x = 0; x < prevBoard[y].length; x++) {
+            if (prevBoard[y][x] === 1) {
+              movingBlocks.push({ x, y });
+            }
+          }
+        }
+        // 2. ブロックが移動可能か判定
+        const bottomBlock = [];
+        for (const block of movingBlocks) {
+          const { x, y } = block;
+          for (let y = prevBoard.length - 1; y >= 0; y--) {
+            if (block.y === 1) {
+              for (let x = 0; x < prevBoard.length; x++) {
+                if (block.x === 1) {
+                  bottomBlock.push({ x, y });
+                }
+              }
+            }
+            break;
+          }
+          if (y + 1 >= prevBoard.length || prevBoard[y + 1][x] === 1) {
+            canMove = false;
+            break;
+          }
+        }
+        for (const block of bottomBlock) {
+          if (newBoard[block.y + 1][block.x] === 1) {
+            canMove = false;
+          }
+        }
+
+        // 3. 移動可能であれば、新しいボードにブロックを配置
+        if (canMove) {
+          // まず、新しいボードを空にする
+          for (const block of movingBlocks) {
+            newBoard[block.y][block.x] = 0;
+            newBoard[block.y + 1][block.x] = 1;
+          }
+        }
+
+        return newBoard;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
   return (
     <div className={styles.container}>
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code} style={{ backgroundColor: '#fafafa' }}>
-            src/app/page.tsx
-          </code>
-        </p>
-
-        <div className={styles.grid}>
-          <a className={styles.card} href="https://nextjs.org/docs">
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a className={styles.card} href="https://nextjs.org/learn">
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a className={styles.card} href="https://github.com/vercel/next.js/tree/master/examples">
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <img src="vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+      <div className={styles.board}>
+        {board.map((row, y) =>
+          row.map((col, x) => (
+            <div className={styles.cell} key={`${x}-${y}`}>
+              <div className={styles.block} style={{ opacity: board[y][x] === 1 ? 1 : 0 }} />
+            </div>
+          )),
+        )}
+      </div>
     </div>
   );
 }
