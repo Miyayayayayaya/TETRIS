@@ -3,12 +3,20 @@
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
+const blockShape_1 = (i: number, j: number, board: number[][]) => {
+  board[i][j] = 1;
+  board[i - 1][j] = 1;
+  board[i][j - 1] = 1;
+  board[i][j + 1] = 1;
+  return board;
+};
+
 export default function Home() {
   const [board, setBoard] = useState([
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -36,6 +44,11 @@ export default function Home() {
     [0, -1],
     [-1, -1],
   ];
+  const newBoard = structuredClone(board);
+  const makeBlock = () => {
+    blockShape_1(2, 4, newBoard);
+    setBoard(newBoard);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,31 +69,14 @@ export default function Home() {
             }
           }
         }
-        // 2. ブロックが移動可能か判定
-        const bottomBlock = [];
+
+        // 2. 移動ブロックの下の判定
         for (const block of movingBlocks) {
           const { x, y } = block;
-          for (let y = prevBoard.length - 1; y >= 0; y--) {
-            if (block.y === 1) {
-              for (let x = 0; x < prevBoard.length; x++) {
-                if (block.x === 1) {
-                  bottomBlock.push({ x, y });
-                }
-              }
-            }
-            break;
-          }
-          if (y + 1 >= prevBoard.length || prevBoard[y + 1][x] === 1) {
-            canMove = false;
-            break;
-          }
-        }
-        for (const block of bottomBlock) {
-          if (newBoard[block.y + 1][block.x] === 1) {
+          if (prevBoard[y + 1][x] === 2 || prevBoard[y + 1][x] === undefined) {
             canMove = false;
           }
         }
-
         // 3. 移動可能であれば、新しいボードにブロックを配置
         if (canMove) {
           // まず、新しいボードを空にする
@@ -89,7 +85,6 @@ export default function Home() {
             newBoard[block.y + 1][block.x] = 1;
           }
         }
-
         return newBoard;
       });
     }, 1000);
@@ -106,6 +101,9 @@ export default function Home() {
             </div>
           )),
         )}
+      </div>
+      <div className={styles.makeBlockButton} onClick={makeBlock}>
+        生成
       </div>
     </div>
   );

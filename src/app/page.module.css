@@ -28,3 +28,13 @@
   background-color: #8a0f9b;
   border: solid 1px #fff;
 }
+
+.makeBlockButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 36px;
+  background-color: #8a0f9b;
+  border: solid 1px #fff;
+}
