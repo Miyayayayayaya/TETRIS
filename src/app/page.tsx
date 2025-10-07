@@ -44,10 +44,12 @@ export default function Home() {
     [0, -1],
     [-1, -1],
   ];
-  const newBoard = structuredClone(board);
   const makeBlock = () => {
-    blockShape_1(2, 4, newBoard);
-    setBoard(newBoard);
+    setBoard((prevBoard) => {
+      const newBoard = prevBoard.map((row) => [...row]);
+      blockShape_1(2, 4, newBoard);
+      return newBoard;
+    });
   };
 
   useEffect(() => {
@@ -69,12 +71,13 @@ export default function Home() {
             }
           }
         }
-
+        console.log(movingBlocks);
         // 2. 移動ブロックの下の判定
         for (const block of movingBlocks) {
           const { x, y } = block;
-          if (prevBoard[y + 1][x] === 2 || prevBoard[y + 1][x] === undefined) {
+          if (y + 1 >= prevBoard.length || prevBoard[y + 1][x] === 2) {
             canMove = false;
+            break;
           }
         }
         // 3. 移動可能であれば、新しいボードにブロックを配置
@@ -82,8 +85,15 @@ export default function Home() {
           // まず、新しいボードを空にする
           for (const block of movingBlocks) {
             newBoard[block.y][block.x] = 0;
+          }
+          for (const block of movingBlocks) {
             newBoard[block.y + 1][block.x] = 1;
           }
+        } else {
+          for (const block of movingBlocks) {
+            newBoard[block.y][block.x] = 2;
+          }
+          blockShape_1(2, 4, newBoard);
         }
         return newBoard;
       });
@@ -97,7 +107,10 @@ export default function Home() {
         {board.map((row, y) =>
           row.map((col, x) => (
             <div className={styles.cell} key={`${x}-${y}`}>
-              <div className={styles.block} style={{ opacity: board[y][x] === 1 ? 1 : 0 }} />
+              <div
+                className={styles.block}
+                style={{ opacity: board[y][x] === 1 || board[y][x] === 2 ? 1 : 0 }}
+              />
             </div>
           )),
         )}
