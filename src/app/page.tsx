@@ -125,10 +125,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setBoard((prevBoard) => {
-        // 現在のボードをコピー
         const newBoard = prevBoard.map((row) => [...row]);
-
-        // 移動可能かどうかのフラグ
         let canMove = true;
         // 移動するブロックの座標を保存する配列
         const movingBlocks = [];
