@@ -34,16 +34,12 @@ export default function Home() {
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ]);
-  const direction = [
-    [-1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1],
-    [1, 0],
-    [1, -1],
-    [0, -1],
-    [-1, -1],
-  ];
+  const KEY_CODES = {
+    ARROW_UP: 'ArrowUp',
+    ARROW_DOWN: 'ArrowDown',
+    ARROW_LEFT: 'ArrowLeft',
+    ARROW_RIGHT: 'ArrowRight',
+  };
   const makeBlock = () => {
     setBoard((prevBoard) => {
       const newBoard = prevBoard.map((row) => [...row]);
@@ -51,7 +47,49 @@ export default function Home() {
       return newBoard;
     });
   };
-
+  const moveBlockHorizontally = (direction: 'left' | 'right') => {
+    setBoard((prevBoard) => {
+      const newBoard = structuredClone(prevBoard);
+      const movingBlock = [];
+      for (let y = 0; y < newBoard.length; y++) {
+        for (let x = 0; x < newBoard[y].length; x++) {
+          if (newBoard[y][x] === 1) {
+            movingBlock.push({ x, y });
+          }
+        }
+      }
+      const dx = direction === 'left' ? -1 : 1;
+      const canMove = movingBlock.every((block) => {
+        const X = block.x + dx;
+        return 0 <= X && X < newBoard[0].length && newBoard[block.y][X] !== 2;
+      });
+      if (canMove) {
+        for (const block of movingBlock) {
+          newBoard[block.y][block.x] = 0;
+        }
+        for (const block of movingBlock) {
+          newBoard[block.y][block.x + dx] = 1;
+        }
+      }
+      return newBoard;
+    });
+  };
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case KEY_CODES.ARROW_LEFT:
+          moveBlockHorizontally('left');
+          break;
+        case KEY_CODES.ARROW_RIGHT:
+          moveBlockHorizontally('right');
+          break;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  });
   useEffect(() => {
     const interval = setInterval(() => {
       setBoard((prevBoard) => {
