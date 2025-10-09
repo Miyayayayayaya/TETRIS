@@ -74,6 +74,35 @@ export default function Home() {
       return newBoard;
     });
   };
+  const moveBlockVertically = (direction: 'up' | 'down') => {
+    setBoard((prevBoard) => {
+      const newBoard = structuredClone(prevBoard);
+      const movingBlock = [];
+      for (let y = 0; y < newBoard.length; y++) {
+        for (let x = 0; x < newBoard[y].length; x++) {
+          if (newBoard[y][x] === 1) {
+            movingBlock.push({ x, y });
+          }
+        }
+      }
+      if (direction === 'down') {
+        const canMove = movingBlock.every((block) => {
+          const Y = block.y + 1;
+          return Y < newBoard.length && newBoard[Y][block.x] !== 2;
+        });
+        if (canMove) {
+          for (const block of movingBlock) {
+            newBoard[block.y][block.x] = 0;
+          }
+          for (const block of movingBlock) {
+            newBoard[block.y + 1][block.x] = 1;
+          }
+        }
+      }
+
+      return newBoard;
+    });
+  };
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       switch (event.key) {
@@ -82,6 +111,9 @@ export default function Home() {
           break;
         case KEY_CODES.ARROW_RIGHT:
           moveBlockHorizontally('right');
+          break;
+        case KEY_CODES.ARROW_DOWN:
+          moveBlockVertically('down');
           break;
       }
     };
