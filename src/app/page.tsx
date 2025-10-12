@@ -3,11 +3,38 @@
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
 
-const blockShape_1 = (i: number, j: number, board: number[][]) => {
-  board[i][j] = 1;
+const startMakeBlock = (i: number, j: number, board: number[][]) => {
+  board[i][j] = 3;
   board[i - 1][j] = 1;
   board[i][j - 1] = 1;
   board[i][j + 1] = 1;
+  return board;
+};
+const blockShape_1 = (i: number, j: number, board: number[][], checkAngle: number) => {
+  if (checkAngle % 4 === 0) {
+    board[i][j] = 3;
+    board[i - 1][j] = 1;
+    board[i][j - 1] = 1;
+    board[i][j + 1] = 1;
+  }
+  if (checkAngle % 4 === 1) {
+    board[i][j] = 3;
+    board[i - 1][j] = 1;
+    board[i][j + 1] = 1;
+    board[i + 1][j] = 1;
+  }
+  if (checkAngle % 4 === 2) {
+    board[i][j] = 3;
+    board[i][j - 1] = 1;
+    board[i][j + 1] = 1;
+    board[i + 1][j] = 1;
+  }
+  if (checkAngle % 4 === 3) {
+    board[i][j] = 3;
+    board[i][j - 1] = 1;
+    board[i - 1][j] = 1;
+    board[i + 1][j] = 1;
+  }
   return board;
 };
 
@@ -34,6 +61,7 @@ export default function Home() {
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ]);
+  const [checkAngle, setCheckAngle] = useState(0);
   const KEY_CODES = {
     ARROW_UP: 'ArrowUp',
     ARROW_DOWN: 'ArrowDown',
@@ -43,7 +71,18 @@ export default function Home() {
   const makeBlock = () => {
     setBoard((prevBoard) => {
       const newBoard = prevBoard.map((row) => [...row]);
-      blockShape_1(2, 4, newBoard);
+      const coreBlock = [];
+      startMakeBlock(2, 4, newBoard);
+      for (let y = 0; y < prevBoard.length; y++) {
+        for (let x = 0; x < prevBoard[0].length; x++) {
+          if (prevBoard[y][x] === 3) {
+            coreBlock.push({ x, y });
+          }
+        }
+      }
+      for (const block of coreBlock) {
+        blockShape_1(block.y, block.x, newBoard, 0);
+      }
       return newBoard;
     });
   };
@@ -53,7 +92,7 @@ export default function Home() {
       const movingBlock = [];
       for (let y = 0; y < newBoard.length; y++) {
         for (let x = 0; x < newBoard[y].length; x++) {
-          if (newBoard[y][x] === 1) {
+          if (newBoard[y][x] === 1 || newBoard[y][x] === 3) {
             movingBlock.push({ x, y });
           }
         }
@@ -65,22 +104,27 @@ export default function Home() {
       });
       if (canMove) {
         for (const block of movingBlock) {
-          newBoard[block.y][block.x] = 0;
+          if (newBoard[block.y][block.x] === 1 || newBoard[block.y][block.x] === 3) {
+            newBoard[block.y][block.x] = 0;
+          }
         }
         for (const block of movingBlock) {
           newBoard[block.y][block.x + dx] = 1;
+          if (prevBoard[block.y][block.x] === 3) {
+            newBoard[block.y][block.x + dx] = 3;
+          }
         }
       }
       return newBoard;
     });
   };
-  const moveBlockVertically = (direction: 'up' | 'down') => {
+  const moveBlockVertically1 = (direction: 'down') => {
     setBoard((prevBoard) => {
       const newBoard = structuredClone(prevBoard);
       const movingBlock = [];
       for (let y = 0; y < newBoard.length; y++) {
         for (let x = 0; x < newBoard[y].length; x++) {
-          if (newBoard[y][x] === 1) {
+          if (newBoard[y][x] === 1 || newBoard[y][x] === 3) {
             movingBlock.push({ x, y });
           }
         }
@@ -92,16 +136,41 @@ export default function Home() {
         });
         if (canMove) {
           for (const block of movingBlock) {
-            newBoard[block.y][block.x] = 0;
+            if (newBoard[block.y][block.x] === 1 || newBoard[block.y][block.x] === 3) {
+              newBoard[block.y][block.x] = 0;
+            }
           }
           for (const block of movingBlock) {
             newBoard[block.y + 1][block.x] = 1;
+            if (prevBoard[block.y][block.x] === 3) {
+              newBoard[block.y + 1][block.x] = 3;
+            }
           }
         }
       }
-
       return newBoard;
     });
+  };
+  const moveBlockVertically2 = (direction: 'up') => {
+    setBoard((prevBoard) => {
+      const newBoard = structuredClone(prevBoard);
+      const coreBlock = [];
+      for (let y = 0; y < newBoard.length; y++) {
+        for (let x = 0; x < newBoard[y].length; x++) {
+          if (newBoard[y][x] === 3) {
+            coreBlock.push({ x, y });
+          }
+          if (newBoard[y][x] === 1) {
+            newBoard[y][x] = 0;
+          }
+        }
+      }
+      for (const block of coreBlock) {
+        blockShape_1(block.y, block.x, newBoard, checkAngle + 1);
+      }
+      return newBoard;
+    });
+    setCheckAngle((prevAngle) => prevAngle + 1);
   };
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -113,7 +182,10 @@ export default function Home() {
           moveBlockHorizontally('right');
           break;
         case KEY_CODES.ARROW_DOWN:
-          moveBlockVertically('down');
+          moveBlockVertically1('down');
+          break;
+        case KEY_CODES.ARROW_UP:
+          moveBlockVertically2('up');
           break;
       }
     };
@@ -133,12 +205,11 @@ export default function Home() {
         // 1. 移動するブロックをすべて見つける
         for (let y = 0; y < prevBoard.length; y++) {
           for (let x = 0; x < prevBoard[y].length; x++) {
-            if (prevBoard[y][x] === 1) {
+            if (prevBoard[y][x] === 1 || prevBoard[y][x] === 3) {
               movingBlocks.push({ x, y });
             }
           }
         }
-        console.log(movingBlocks);
         // 2. 移動ブロックの下の判定
         for (const block of movingBlocks) {
           const { x, y } = block;
@@ -155,12 +226,15 @@ export default function Home() {
           }
           for (const block of movingBlocks) {
             newBoard[block.y + 1][block.x] = 1;
+            if (prevBoard[block.y][block.x] === 3) {
+              newBoard[block.y + 1][block.x] = 3;
+            }
           }
         } else {
           for (const block of movingBlocks) {
             newBoard[block.y][block.x] = 2;
           }
-          blockShape_1(2, 4, newBoard);
+          blockShape_1(2, 4, newBoard, 0);
         }
         return newBoard;
       });
@@ -176,7 +250,9 @@ export default function Home() {
             <div className={styles.cell} key={`${x}-${y}`}>
               <div
                 className={styles.block}
-                style={{ opacity: board[y][x] === 1 || board[y][x] === 2 ? 1 : 0 }}
+                style={{
+                  opacity: board[y][x] === 1 || board[y][x] === 2 || board[y][x] === 3 ? 1 : 0,
+                }}
               />
             </div>
           )),
